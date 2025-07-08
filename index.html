@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Download your favourite YouTube videos as MP3 files!"/>
+    <meta name="robots" content="index, follow" />
+    <title>YT to MP3 Downloader</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Simple transition for the result card */
+        #result-card {
+            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200 flex items-center justify-center min-h-screen">
+
+    <div class="w-full max-w-2xl mx-auto p-4">
+        <div id="main-content" class="text-center transition-opacity duration-500">
+            <!-- Header -->
+            <h1 class="text-4xl md:text-5xl font-bold text-white mb-2">
+                YouTube to MP3 
+            </h1>
+            <p class="text-gray-400 mb-8 text-lg">
+                Paste a YouTube video link to convert it to a high-quality MP3. <br> (No Playlists!)
+            </p>
+
+            <!-- Input Form -->
+            <form id="download-form" class="flex flex-col sm:flex-row items-center gap-4 w-full">
+                <div class="relative flex-grow w-full">
+                    <svg class="absolute left-4 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-500" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.72"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.72-1.72"></path></svg>
+                    <input type="text" id="youtube-url" placeholder="https://www.youtube.com/watch?v=..." class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg py-4 pl-12 pr-4 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition duration-300 placeholder-gray-500">
+                </div>
+                <button type="submit" id="submit-button" class="w-full sm:w-auto flex items-center justify-center gap-2 bg-indigo-600 text-white font-semibold py-4 px-8 rounded-lg hover:bg-indigo-700 transition duration-300 shadow-lg shadow-indigo-600/20">
+                    <svg id="button-icon" class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" x2="12" y1="15" y2="3"></line></svg>
+                    <span id="button-text">Convert</span>
+                    <svg id="spinner" class="animate-spin h-6 w-6 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </button>
+            </form>
+             <!-- Error Message -->
+            <div id="error-message" class="mt-4 text-red-400 hidden"></div>
+        </div>
+
+        <!-- Result Card (Initially Hidden) -->
+        <div id="result-card" class="mt-10 bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-2xl p-6 hidden opacity-0 transform -translate-y-4">
+            <div class="flex flex-col md:flex-row items-center gap-6">
+                <img id="video-thumbnail" src="https://placehold.co/160x90/1a202c/4a5568?text=Thumbnail" alt="Video Thumbnail" class="w-full md:w-40 h-auto rounded-lg shadow-lg">
+                <div class="flex-grow text-center md:text-left">
+                    <h2 id="video-title" class="text-xl font-bold text-white mb-1">Video Title Will Appear Here</h2>
+                    <p id="video-channel" class="text-gray-400 mb-4">Channel Name</p>
+                    <button id="download-button" class="w-full md:w-auto flex items-center justify-center gap-2 bg-emerald-500 text-white font-semibold py-3 px-6 rounded-lg hover:bg-emerald-600 transition duration-300 shadow-lg shadow-emerald-500/20">
+                        <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" x2="12" y1="15" y2="3"></line></svg>
+                        Download MP3
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const downloadForm = document.getElementById('download-form');
+            const submitButton = document.getElementById('submit-button');
+            const buttonText = document.getElementById('button-text');
+            const buttonIcon = document.getElementById('button-icon');
+            const spinner = document.getElementById('spinner');
+            const resultCard = document.getElementById('result-card');
+            const errorMessage = document.getElementById('error-message');
+            const urlInput = document.getElementById('youtube-url');
+            const downloadButton = document.getElementById('download-button');
+
+            let currentVideoUrl = '';
+            let currentVideoTitle = '';
+
+            downloadForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                errorMessage.classList.add('hidden');
+                errorMessage.textContent = '';
+                resultCard.classList.add('hidden');
+
+
+                const url = urlInput.value;
+                if (!url || !isValidHttpUrl(url)) {
+                    showError('Please enter a valid YouTube URL.');
+                    return;
+                }
+
+                setLoadingState(true);
+                currentVideoUrl = url;
+
+                try {
+                    const response = await fetch(`/video-info?url=${encodeURIComponent(url)}`);
+                    if (!response.ok) {
+                        const errData = await response.json();
+                        throw new Error(errData.error || 'Could not fetch video information.');
+                    }
+                    const data = await response.json();
+                    
+                    currentVideoTitle = data.title;
+                    updateResultCard(data.title, data.channel, data.thumbnail);
+                    showResultCard();
+
+                } catch (error) {
+                    showError(error.message);
+                } finally {
+                    setLoadingState(false);
+                }
+            });
+
+            downloadButton.addEventListener('click', () => {
+                if (currentVideoUrl) {
+                    const downloadUrl = `/download?url=${encodeURIComponent(currentVideoUrl)}&title=${encodeURIComponent(currentVideoTitle)}`;
+                    window.location.href = downloadUrl;
+                }
+            });
+
+            function setLoadingState(isLoading) {
+                if (isLoading) {
+                    submitButton.disabled = true;
+                    buttonText.textContent = 'Converting...';
+                    buttonIcon.classList.add('hidden');
+                    spinner.classList.remove('hidden');
+                } else {
+                    submitButton.disabled = false;
+                    buttonText.textContent = 'Convert';
+                    buttonIcon.classList.remove('hidden');
+                    spinner.classList.add('hidden');
+                }
+            }
+            
+            function showError(message) {
+                errorMessage.textContent = message;
+                errorMessage.classList.remove('hidden');
+                urlInput.focus();
+            }
+
+            function updateResultCard(title, channel, thumbnailUrl) {
+                document.getElementById('video-title').textContent = title;
+                document.getElementById('video-channel').textContent = channel;
+                const thumbnailElement = document.getElementById('video-thumbnail');
+                thumbnailElement.src = thumbnailUrl;
+                thumbnailElement.onerror = () => {
+                    thumbnailElement.src = 'https://placehold.co/160x90/1a202c/4a5568?text=Thumbnail';
+                };
+            }
+
+            function showResultCard() {
+                resultCard.classList.remove('hidden', 'opacity-0', '-translate-y-4');
+            }
+
+            function isValidHttpUrl(string) {
+                let url;
+                try {
+                    url = new URL(string);
+                } catch (_) {
+                    return false;  
+                }
+                return (url.protocol === "http:" || url.protocol === "https:") && (url.hostname === "www.youtube.com" || url.hostname === "youtube.com" || url.hostname === "youtu.be");
+            }
+        });
+    </script>
+</body>
+</html>
