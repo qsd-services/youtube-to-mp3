@@ -1,6 +1,6 @@
-# SonicFetch - YouTube to MP3 Converter
+# YouTube to MP3 Converter
 
-SonicFetch is a simple web application that allows you to convert YouTube videos into high-quality 320kbps MP3 files for download.
+This is a simple web application that allows you to convert YouTube videos into high-quality 320kbps MP3 files for download.
 
 ## Features
 
@@ -21,7 +21,7 @@ Before you begin, you need to have the following installed on your system:
 
 2.  **Navigate to the project directory:**
     ```bash
-    cd sonic-fetch
+    cd youtube-to-mp3
     ```
 
 3.  **Install the required npm packages:**
